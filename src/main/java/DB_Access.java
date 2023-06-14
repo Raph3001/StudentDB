@@ -18,8 +18,6 @@ public class DB_Access {
     private PreparedStatement INSERT_STUDENT_STATEMENT;
 
     public void loadStudents() throws IOException, SQLException {
-        /*String list = Files.readString(Path.of("C:\\Users\\Rapha\\Java\\StudentDatabasePostgreSQL\\src\\main\\resources\\Students_3xHIF_2023.csv"));
-        System.out.println(list);*/
         List<Student> students = new BufferedReader(new FileReader("C:\\Users\\Rapha\\Java\\StudentDatabasePostgreSQL\\src\\main\\resources\\Students_3xHIF_2023.csv")).lines()
                 .skip(1)
                 .map(c -> {
@@ -61,7 +59,7 @@ public class DB_Access {
 
         for (String string : classStudentMap.keySet()) {
             INSERT_CLASS_DATE_STATEMENT.setString(1, string);
-            INSERT_CLASS_DATE_STATEMENT.executeLargeUpdate();
+            INSERT_CLASS_DATE_STATEMENT.executeUpdate();
         }
         addStudentsToDatabase(classStudentMap);
     }
@@ -103,7 +101,6 @@ public class DB_Access {
         ResultSet rs = statement.executeQuery("SELECT classname FROM grade");
         List<String> classNameList = new ArrayList<>();
         while (rs.next()) {
-            System.out.println(rs.getString("classname"));
             classNameList.add(rs.getString("classname"));
         }
         return classNameList;
@@ -131,6 +128,8 @@ public class DB_Access {
 
     private final String ADD_STUDENT_TO_DB = "INSERT INTO student (catno, classid, firstname, lastname, dateofbirth) VALUES (?, ?, ?, ?, ?)";
     private PreparedStatement ADD_STUDENT;
+    String DELETE_STUDENT_FROM_DB = "INSERT INTO student (catno, classid, firstname, lastname, dateofbirth) VALUES (?, ?, ?, ?, ?)";
+    private PreparedStatement DELETE_STUDENT;
 
     public void addStudent(Student student) throws SQLException {
 
@@ -153,7 +152,11 @@ public class DB_Access {
             classList.add(new Student(crs.getString("firstname"), crs.getString("lastname"), LocalDate.parse(crs.getDate("dateofbirth").toString()), student.getClassname()));
         }
 
-        classList = classList.stream().sorted((c, d) -> c.getLastname().compareTo(d.getLastname())).collect(Collectors.toList());
+        classList = classList.stream()
+                .sorted((c, d) -> c.getLastname().compareTo(d.getLastname()))
+                .collect(Collectors.toList());
+
+
 
         for (int i = 0; i < classList.size(); i++) {
 
@@ -203,36 +206,18 @@ public class DB_Access {
 
 
 
-    public static void main(String[] args) throws IOException, SQLException {
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-            /*DB_Access db_access = new DB_Access();
-            db_access.loadStudents();
-
-        System.out.println("Students of 3DHIF");
-            db_access.getStudents("3DHIF");
-        System.out.println("All students");
-            db_access.getStudents("");
-            db_access.getAllClassNames();
-        //System.out.println("Add student Cornelius");
-        //    db_access.addStudent(new Student("Cornelius", "Vanderbilt", LocalDate.of(2005, 2, 2), "3DHIF"));
-        db_access.exportDBToFile();
-
-        JFrame frame = new JFrame();
-        JButton btShowStudents = new JButton("Show all students");
-        btShowStudents.setBounds(100, 200, 50, 20);
-        frame.add(btShowStudents);
-
-        frame.setVisible(true);
-        */
         DB_Access dbAccess = new DB_Access();
-        while (!false) {
-            System.out.println("Welcome to the Student DB, what do you want to do\n" +
-                    "1: Insert the Student List into the DB\n" +
-                    "2: Get all classnames from the DB\n" +
-                    "3: Get the Students\n" +
-                    "4: Insert new Student into a class\n" +
-                    "5: Export DB to a file\n" +
-                    "6: Exit the program");
+        while (true) {
+            System.out.println("""
+                    Welcome to the Student DB, what do you want to do
+                    1: Insert the Student List into the DB
+                    2: Get all classnames from the DB
+                    3: Get the Students
+                    4: Insert new Student into a class
+                    5: Export DB to a file
+                    6: Exit the program""");
 
             try {
                 int input = Integer.parseInt(sc.next());
@@ -257,8 +242,8 @@ public class DB_Access {
                     case 3:
                         try {
                             List<String> classnames = dbAccess.getAllClassNames();
-                            System.out.println("Select a class:\n" +
-                                    "1: " + classnames.get(0) +
+                            System.out.println("Select a class:" +
+                                    "\n1: " + classnames.get(0) +
                                     "\n2: " + classnames.get(1) +
                                     "\n3: " + classnames.get(2) +
                                     "\n4: " + classnames.get(3) +
@@ -268,7 +253,7 @@ public class DB_Access {
                             int selectedClass = 0;
 
                             try {
-                                List<Student> studentList = new ArrayList<>();
+                                List<Student> studentList;
                                 selectedClass = Integer.parseInt(sc.next());
                                 if (selectedClass <= 0 || selectedClass > 7) throw new Exception();
                                 else if (selectedClass == 7) studentList = dbAccess.getStudents("");
@@ -284,8 +269,8 @@ public class DB_Access {
                         }
                         break;
                     case 4:
-                        String firstname = "";
-                        String lastname = "";
+                        String firstname;
+                        String lastname;
                         LocalDate birthdate = LocalDate.of(1970, 1, 1);
 
                         try {

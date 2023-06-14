@@ -7,7 +7,7 @@ public class DB_Database {
 
     private static DB_Database db_database;
     private Connection connection;
-    private DB_CachedConnection cachedConnection = DB_CachedConnection.getInstance();
+    private final DB_CachedConnection cachedConnection = DB_CachedConnection.getInstance();
 
     private DB_Database() {
         try {
@@ -45,7 +45,7 @@ public class DB_Database {
         if (connection != null) {
             return cachedConnection.getStatement();
         }
-        throw new RuntimeException("Not cojexted to DB");
+        throw new RuntimeException("Not connected to DB");
     }
 
     public void releaseStatement(Statement statement) {
